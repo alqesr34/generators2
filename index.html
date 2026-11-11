@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سجل أصحاب المولدات</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--tx:#1b1f24;--mut:#6a7280;--bd:#dde1e7;--pri:#0f6b5c;--prit:#fff;--dan:#c0392b;--tag:#e8ebef}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#14171b;--card:#1d2127;--tx:#eceff3;--mut:#9aa3af;--bd:#2d333b;--pri:#2fb59f;--prit:#06231e;--dan:#ef7b6e;--tag:#2d333b}
+.top{display:flex;justify-content:space-between;align-items:center}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-size:16px}
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:6px 0 12px}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;text-align:center;margin-bottom:12px}
+.stat b{font-size:22px;color:var(--pri);margin-inline-start:6px}
+.bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.bar input{flex:1;min-width:200px}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:inherit;font:inherit}
+button{border:0;border-radius:10px;padding:10px 14px;font:inherit;cursor:pointer;background:var(--pri);color:var(--prit);white-space:nowrap}
+button.sec{background:var(--card);color:var(--tx);border:1px solid var(--bd)}
+button.del{background:transparent;color:var(--dan);border:1px solid var(--dan)}
+.item{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px}
+.item h3{margin:0 0 4px;font-size:17px}
+.row{color:var(--mut);font-size:14px;margin:2px 0}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--tag);margin-inline-end:4px}
+.acts{display:flex;gap:8px;margin-top:10px}
+.form{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px;display:none}
+.form.on{display:block}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.empty,.note{text-align:center;color:var(--mut);padding:20px}
+#pa{display:none}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body{background:#fff}
+  .wrap{display:none}
+  #pa{display:block;background:#fff;color:#000}
+  #pa h2{margin:0 0 4px}
+  #pa table{width:100%;border-collapse:collapse;font-size:13px}
+  #pa th,#pa td{border:1px solid #666;padding:5px 6px;text-align:right}
+  #pa th{background:#e6efed}
+  #pa tr{page-break-inside:avoid}
+  #pa thead{display:table-header-group}
+}
+
+.login{max-width:380px;margin:50px auto}
+.login .item{padding:18px}
+.err{color:var(--dan);font-size:14px;margin-top:10px;min-height:20px}
+.mail{font-size:12px;color:var(--mut)}
+</style>
+</head>
+<body>
+<div id="loginView" class="wrap login" style="display:none">
+<h1>⚡ سجل أصحاب المولدات</h1>
+<div class="item">
+<label>رمز الدخول</label><input id="pw" type="password" inputmode="numeric" autocomplete="off" dir="ltr" style="text-align:center;font-size:22px;letter-spacing:6px">
+<div class="acts"><button id="loginBtn" style="flex:1">دخول</button></div>
+<div class="err" id="lerr"></div>
+</div>
+</div>
+<div id="appView" class="wrap" style="display:none">
+<div class="top"><h1>⚡ سجل أصحاب المولدات</h1><div style="display:flex;gap:6px"><button class="sec" id="theme"></button><button class="sec" id="out">خروج</button></div></div>
+<div class="stat">عدد المولدات: <b id="sCount">0</b></div>
+<div class="bar">
+<input id="q" placeholder="بحث بالاسم أو الهاتف أو المحلة…">
+<button id="add">+ إضافة</button>
+</div>
+<div class="form" id="form">
+<input type="hidden" id="fid">
+<label>اسم صاحب المولدة *</label><input id="name">
+<div class="g2">
+<div><label>رقم الهاتف</label><input id="phone" inputmode="tel"></div>
+<div><label>رقم الهوية / البطاقة</label><input id="nid"></div>
+</div>
+<label>المحلة / القرية</label><input id="area">
+<label>العنوان التفصيلي</label><input id="addr">
+<div class="g2">
+<div><label>سعة المولدة (kVA)</label><input id="kva" type="number" inputmode="decimal"></div>
+<div><label>الحالة</label><select id="status"><option>يعمل</option><option>متوقف</option><option>مخالف</option></select></div>
+</div>
+<label>ملاحظات</label><textarea id="notes" rows="2"></textarea>
+<div class="acts"><button id="save">حفظ</button><button class="sec" id="cancel">إلغاء</button></div>
+</div>
+<div id="list"></div>
+<div class="bar" style="margin-top:14px">
+<button id="pdf">طباعة / حفظ PDF</button>
+<button class="sec" id="exp">تصدير Excel (CSV)</button>
+<button class="sec" id="rf">تحديث</button>
+</div>
+<div class="note" id="msg"></div>
+</div>
+<div id="pa"></div>
+<script>
+const $=id=>document.getElementById(id);
+const SB="https://aqlcwvjkrfzpobkxskxn.supabase.co";
+const KEY="sb_publishable_62k7litkho6OvMoWXc0hzw_yimmRarM";
+const F=["name","phone","nid","area","addr","kva","status","notes"];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let rows=[],S=null,timer=null;
+try{S=JSON.parse(localStorage.getItem("genSess")||"null")}catch(e){}
+function saveS(){try{S?localStorage.setItem("genSess",JSON.stringify(S)):localStorage.removeItem("genSess")}catch(e){}}
+/* theme */
+let th=null;try{th=localStorage.getItem("genTheme")}catch(e){}
+if(th!=="dark"&&th!=="light")th=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
+function applyTheme(){document.documentElement.dataset.theme=th;$("theme").textContent=th==="dark"?"☀️ فاتح":"🌙 غامق"}
+$("theme").onclick=()=>{th=th==="dark"?"light":"dark";applyTheme();try{localStorage.setItem("genTheme",th)}catch(e){}};
+applyTheme();
+/* auth with PIN (shared staff account) */
+const EM="staff@generators.app";
+async function auth(grant,body){
+  const r=await fetch(SB+"/auth/v1/token?grant_type="+grant,{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error_description||j.msg||j.message||"خطأ");
+  S={access:j.access_token,refresh:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1000-60000};
+  saveS();
+}
+async function token(){
+  if(!S)return null;
+  if(Date.now()>S.exp){try{await auth("refresh_token",{refresh_token:S.refresh})}catch(e){S=null;saveS();return null}}
+  return S.access;
+}
+async function api(path,opt={}){
+  const t=await token();
+  if(!t){showLogin();throw new Error("auth")}
+  const r=await fetch(SB+"/rest/v1/"+path,{...opt,headers:{apikey:KEY,Authorization:"Bearer "+t,"Content-Type":"application/json",Prefer:"return=representation",...(opt.headers||{})}});
+  if(r.status===401){S=null;saveS();showLogin();throw new Error("auth")}
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.message||("خطأ "+r.status))}
+  const tx=await r.text();return tx?JSON.parse(tx):null;
+}
+function showLogin(){
+  clearInterval(timer);rows=[];
+  $("appView").style.display="none";$("loginView").style.display="block";
+  setTimeout(()=>$("pw").focus(),50);
+}
+function showApp(){
+  $("loginView").style.display="none";$("appView").style.display="block";
+  loadRows();clearInterval(timer);
+  timer=setInterval(()=>{if(!$("form").classList.contains("on")&&!document.hidden)loadRows(true)},30000);
+}
+$("loginBtn").onclick=async()=>{
+  const pin=$("pw").value.trim();
+  if(!pin){$("lerr").textContent="اكتب رمز الدخول";return}
+  $("lerr").textContent="";$("loginBtn").disabled=true;
+  try{await auth("password",{email:EM,password:pin});$("pw").value="";showApp()}
+  catch(e){
+    const m=String(e.message);
+    $("lerr").textContent=/invalid|credentials/i.test(m)?"الرمز غير صحيح":/fetch|network|load failed/i.test(m)?"لا يوجد اتصال بالإنترنت":/rate|too many/i.test(m)?"محاولات كثيرة، انتظر دقيقة ثم جرّب":m;
+  }
+  $("loginBtn").disabled=false;
+};
+$("pw").onkeydown=e=>{if(e.key==="Enter")$("loginBtn").click()};
+$("out").onclick=()=>{S=null;saveS();showLogin()};
+/* data */
+async function loadRows(quiet){
+  try{rows=await api("owners?select=*&order=updated_at.desc")||[];$("msg").textContent="";render()}
+  catch(e){if(e.message!=="auth"&&!quiet)$("msg").textContent="تعذر تحميل البيانات: "+e.message}
+}
+function render(){
+  const t=$("q").value.trim().toLowerCase();
+  const r=rows.filter(x=>!t||[x.name,x.phone,x.area,x.addr].join(" ").toLowerCase().includes(t));
+  $("sCount").textContent=rows.length;
+  if(!r.length){$("list").innerHTML='<div class="empty">لا توجد سجلات</div>';return}
+  $("list").innerHTML=r.map(x=>`<div class="item"><h3>${esc(x.name)}</h3>
+  <div><span class="tag">${esc(x.status||"")}</span>${x.area?`<span class="tag">${esc(x.area)}</span>`:""}</div>
+  ${x.phone?`<div class="row">📞 ${esc(x.phone)}</div>`:""}
+  ${x.nid?`<div class="row">🪪 ${esc(x.nid)}</div>`:""}
+  ${x.addr?`<div class="row">📍 ${esc(x.addr)}</div>`:""}
+  <div class="row">السعة: ${esc(x.kva||"-")} kVA</div>
+  ${x.notes?`<div class="row">📝 ${esc(x.notes)}</div>`:""}
+  <div class="acts"><button class="sec" data-e="${x.id}">تعديل</button><button class="del" data-d="${x.id}">حذف</button></div></div>`).join("");
+}
+function openForm(x){
+  $("form").classList.add("on");$("fid").value=x?x.id:"";
+  F.forEach(k=>$(k).value=x?(x[k]??""):(k==="status"?"يعمل":""));
+  $("name").focus();
+}
+$("add").onclick=()=>openForm(null);
+$("cancel").onclick=()=>$("form").classList.remove("on");
+$("q").oninput=render;
+$("rf").onclick=()=>loadRows();
+$("list").onclick=async e=>{
+  const ed=e.target.dataset.e,de=e.target.dataset.d;
+  if(ed){openForm(rows.find(x=>x.id===ed));scrollTo(0,0)}
+  if(de&&confirm("حذف هذا السجل نهائياً؟")){
+    try{await api("owners?id=eq."+encodeURIComponent(de),{method:"DELETE"});await loadRows()}
+    catch(err){if(err.message!=="auth")$("msg").textContent="تعذر الحذف: "+err.message}
+  }
+};
+$("save").onclick=async()=>{
+  const d={};F.forEach(k=>d[k]=$(k).value.trim());
+  if(!d.name){alert("يرجى إدخال الاسم");return}
+  const id=$("fid").value;
+  $("save").disabled=true;
+  try{
+    if(id)await api("owners?id=eq."+encodeURIComponent(id),{method:"PATCH",body:JSON.stringify({...d,updated_at:new Date().toISOString()})});
+    else await api("owners",{method:"POST",body:JSON.stringify(d)});
+    $("form").classList.remove("on");$("msg").textContent="";await loadRows();
+  }catch(err){if(err.message!=="auth")$("msg").textContent="تعذر الحفظ: "+err.message}
+  $("save").disabled=false;
+};
+/* export */
+function saveFile(name,text,type){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([text],{type}));
+  a.download=name;document.body.appendChild(a);a.click();a.remove();
+}
+$("exp").onclick=()=>{
+  const H=["الاسم","الهاتف","الهوية","المحلة","العنوان","kVA","الحالة","ملاحظات"];
+  const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+  saveFile("generators.csv","\uFEFF"+[H.map(q).join(",")].concat(rows.map(x=>F.map(k=>q(x[k])).join(","))).join("\n"),"text/csv");
+};
+$("pdf").onclick=()=>{
+  if(!rows.length){$("msg").textContent="لا توجد سجلات للطباعة";return}
+  const H=["#","الاسم","الهاتف","الهوية","المحلة","العنوان","kVA","الحالة","ملاحظات"];
+  $("pa").innerHTML=`<h2>سجل أصحاب المولدات</h2><div style="margin-bottom:8px;font-size:13px">التاريخ: ${new Date().toLocaleDateString("ar")} · العدد الكلي: ${rows.length}</div>
+  <table><thead><tr>${H.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>
+  ${rows.map((x,i)=>`<tr><td>${i+1}</td>${F.map(k=>`<td>${esc(x[k]||"")}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  window.print();
+};
+/* start */
+if(S)showApp();else showLogin();
+</script>
+</body>
+</html>
